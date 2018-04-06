@@ -95,12 +95,12 @@ class Forcelogger:
                 if not statename in self.current_states:
 
                     self.current_states.append(statename)
-                    start_times.append(tme) # dnb message does not have a timestamp
-                    if statename in dict_training_data:
-                        dict_training_data[statename].append([])
+                    self.start_times.append(tme) # dnb message does not have a timestamp
+                    if statename in self.dict_training_data:
+                        self.dict_training_data[statename].append([])
                     else:
                         # add state
-                        dict_training_data[statename] = [[]]
+                        self.dict_training_data[statename] = [[]]
                 else:
                     print "State appeared twice???????? PROBLEM????"
 
@@ -110,7 +110,7 @@ class Forcelogger:
                 statename = data.data[14:]
                 if statename in self.current_states:
                     idx = self.current_states.index(statename)
-                    del start_times[idx]
+                    del self.start_times[idx]
                     self.current_states.remove(statename)
 
                     #print "exit-->", statename, tme
