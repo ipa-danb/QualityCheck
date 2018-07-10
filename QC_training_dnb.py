@@ -4,6 +4,7 @@ from geometry_msgs.msg import WrenchStamped
 from std_msgs.msg import String
 import pandas as pd
 from std_srvs.srv import Empty
+from denso
 import matplotlib.pyplot as plt
 import os
 import threading
@@ -22,12 +23,13 @@ class Forcelogger:
             self.data_file_name = "data"
 
         self.dict_training_data = dict()
-        self.dict_training_data = {}
         self.current_states = []
         self.start_times = []
         self.lock = threading.Lock()
 
     def handle_show(self,req):
+        """Legacy
+        """
         for state in self.dict_training_data:
             print state
             #print dict_training_data[state]
@@ -47,23 +49,21 @@ class Forcelogger:
         with open( file_name, "wb" ) as f:
         	pickle.dump(self.dict_training_data, f)
         	rospy.loginfo("Saved file as %s", file_name)
+
+        del self.start_times[:]
+        del self.current_states[:]
     	self.dict_training_data.clear()
     	rospy.loginfo("... and cleared datalog")
         return []
 
-    """
-    Is that even useful?
-
-        def handle_load(req):
-            global dict_training_data, current_states, start_times, data_file_name
-
-            # clean up running acqusition
-            self.dict_training_data = pickle.load(open( data_file_name, "rb" ))
-            self.current_states = []
-            self.start_times = []
-
-            return []
-    """
+    def handle_clear(self,req):
+        """Clears datalog
+        """
+        del self.start_times[:]
+        del self.current_states[:]
+        self.dict_training_data.clear()
+        rospy.loginfo("Cleared datalog")
+        return []
 
     # This function is called whenever a wrench data set arrives (now does nothing)
     def callback_wrench(self,data):
@@ -80,7 +80,10 @@ class Forcelogger:
                         'z': data.wrench.force.z,
                         'time': tme - start_time}
 
-                self.dict_training_data[state][-1].append(meas)
+                try:
+                    self.dict_training_data[state][-1].append(meas)
+                except:
+                    print "Topic doesnt exist"
 
     # This function is called whenever a information about the active state arrives
     def callback_log(self,data):
@@ -116,7 +119,6 @@ class Forcelogger:
                     #print "exit-->", statename, tme
 
     def listener(self):
-
         # In ROS, nodes are uniquely named. If two nodes with the same
         # node are launched, the previous one is kicked off. The
         # anonymous=True flag means that rospy will choose a unique
@@ -127,9 +129,8 @@ class Forcelogger:
         rospy.Subscriber("/wrench", WrenchStamped, self.callback_wrench)
         rospy.Subscriber("/dnb_executor/log", String, self.callback_log)
 
-        #rospy.Service('show', Empty, self.handle_show)
         rospy.Service('save', Empty, self.handle_save)
-        #rospy.Service('load', Empty, self.handle_load)
+        rospy.Service('clear', Empty, self.handle_clear)
 
         # spin() simply keeps python from exiting until this node is stopped
         try:
@@ -139,6 +140,7 @@ class Forcelogger:
             self.data_file_name += "_emr"
             self.handle_save(None)
             print "ER save data in the following states (still running)\n", self.current_states
+
 
 if __name__ == '__main__':
     import argparse
