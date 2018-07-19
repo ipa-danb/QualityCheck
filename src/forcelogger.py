@@ -35,57 +35,66 @@ class Forcelogger:
         except:
             self.breaksize = 20
 
-        rospy.loginfo("Using breaksize of ", self.breaksize)
+        rospy.loginfo("Using maximum cache of ", self.breaksize, " MB")
 
         try:
             path = os.path.expanduser('~')
             if os.path.isdir(kwargs['directory']) and kwargs['directory'] is not None:
                 self.directory = os.path.join(path,kwargs['directory'])
             else:
-                rospy.loginfo("Using default path: ", os.path.join(path,"data"))
                 self.directory = os.path.join(path,"data")
         except:
             self.directory = os.path.join(path,"data")
 
+        rospy.loginfo("Using path: ", self.directory)
+
+        # Initialize logging lists
         self.timings = []
         self.list_training_data = [[],[]]
-
         self.current_states = []
         self.start_times = []
-
-        self.lock = threading.Lock()
-        self.last_measurement = {'xp': 0,
-                                 'yp': 0,
-                                 'zp': 0,
-                                 'ap': 0,
-                                 'bp': 0,
-                                 'gp': 0,
-                                 'timeP':0}
+        self.last_measurement = {'xp': 0,'yp': 0,'zp': 0,'ap': 0,'bp': 0,'gp': 0,'timeP':0}
         self.start_time = 0
         self.counter= 0
 
-    def handle_save(self,req):
-        with self.lock:
-            self.saveLog()
-            self.clearLog()
-        return []
+        # Initialize Lock
+        self.lock = threading.Lock()
+
+    ###################################
+    ## Handles for service callbacks
+    ###################################
 
     def start_forcelog(self,req):
-        rospy.loginfo("new filename: " + req.name)
+        rospy.loginfo("Start Forcelog with filename: " + req.name)
         self.data_file_name = req.name
         self.clearLog()
         self.subscribe()
-
         return True
 
     def stop_forcelog(self,req):
+
         try:
             self.unsubscribe()
             self.saveLog()
             self.clearLog()
+            rospy.loginfo("Stopping Forcelog")
+            rospy.loginfo("---")
             return True, ''
         except Exception as ex:
             return False, str(ex)
+
+    def handle_clear(self,req):
+        """Clears datalog
+        """
+        try:
+            self.unsubscribe()
+            self.clearLog()
+        except Exception as ex:
+            return False, str(ex)
+
+    ###################################
+    ## Handles for service callbacks
+    ###################################
 
     def saveLog(self):
         # Create File Name with timestring
@@ -114,18 +123,34 @@ class Forcelogger:
 
         end_time = time.time()
 
-        rospy.loginfo("Time needed for saving: " + str(end_time- start_time))
+        rospy.loginfo("Time needed for saving: {0:.2f}s".format(end_time- start_time))
 
     def clearLog(self):
-        del self.list_training_data[:]
         self.list_training_data = [[],[]]
         rospy.loginfo("Cleared datalog")
 
-    def handle_clear(self,req):
-        """Clears datalog
-        """
-        self.clearLog()
-        return []
+    ###################################
+    ## Subscribe & Unsubscribe functions
+    ###################################
+    def subscribe(self):
+        rospy.loginfo("Subscribing to /tf_chain and /wrench")
+        self.sub_tf_chain = rospy.Subscriber("/tf_chain",EulerFrame,self.callback_tfchain)
+        self.sub_wrench = rospy.Subscriber("/wrench", WrenchStamped, self.callback_wrench)
+
+    def unsubscribe(self):
+        rospy.loginfo("Unsubscribing from /tf_chain and /wrench")
+        try:
+            self.sub_tf_chain.unregister()
+        except:
+            rospy.loginfo("TF Chain subscriber didnt exist")
+        try:
+            self.sub_wrench.unregister()
+        except:
+            rospy.loginfo("Wrench subscriber didnt exist")
+
+    ###################################
+    ## Callbacks
+    ###################################
 
     def callback_tfchain(self,data):
         """
@@ -217,15 +242,17 @@ class Forcelogger:
                     del self.start_times[idx]
                     self.current_states.remove(statename)
 
+
+    ###################################
+    ## Listener Node
+    ###################################
     def listener(self):
         rospy.init_node('forcelogger', anonymous=True)
 
         # Always start the executor subscriber, so we actually always have to current state
         rospy.Subscriber("/dnb_executor/log", String, self.callback_log)
 
-        # TODO give those meaningful names
-        rospy.Service('/forcelogger/save', Empty, self.handle_save)
-        rospy.Service('/forcelogger/clear', Empty, self.handle_clear)
+        rospy.Service('/forcelogger/abortForceLog', Trigger, self.handle_clear)
         rospy.Service('/forcelogger/startForceLog', startForceLog, self.start_forcelog)
         rospy.Service('/forcelogger/stopForceLog', Trigger, self.stop_forcelog)
 
@@ -237,22 +264,6 @@ class Forcelogger:
             self.data_file_name += "_emr"
             self.saveLog()
             rospy.logwarn("Emergency save data")
-
-    def subscribe(self):
-        rospy.loginfo("subscribing new")
-        self.sub_tf_chain = rospy.Subscriber("/tf_chain",EulerFrame,self.callback_tfchain)
-        self.sub_wrench = rospy.Subscriber("/wrench", WrenchStamped, self.callback_wrench)
-
-    def unsubscribe(self):
-        rospy.loginfo("unsubscribing")
-        try:
-            self.sub_tf_chain.unregister()
-        except:
-            rospy.loginfo("TF Chain subscriber didnt exist")
-        try:
-            self.sub_wrench.unregister()
-        except:
-            rospy.loginfo("Wrench subscriber didnt exist")
 
 if __name__ == '__main__':
     import argparse
