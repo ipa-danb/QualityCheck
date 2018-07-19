@@ -105,6 +105,6 @@ venv.bak/
 .mypy_cache/
 
 # Folders
-[Dd]ata
-[Cc]fgs
+[Dd]ata/*
+[Cc]fgs/*
 

@@ -87,7 +87,6 @@ class Forcelogger:
         except Exception as ex:
             return False, str(ex)
 
-
     def saveLog(self):
         # Create File Name with timestring
         timestr = time.strftime("%Y%m%d-%H%M%S")
@@ -219,7 +218,7 @@ class Forcelogger:
                     self.current_states.remove(statename)
 
     def listener(self):
-        rospy.init_node('listener', anonymous=True)
+        rospy.init_node('forcelogger', anonymous=True)
 
         # Always start the executor subscriber, so we actually always have to current state
         rospy.Subscriber("/dnb_executor/log", String, self.callback_log)
@@ -261,7 +260,6 @@ if __name__ == '__main__':
     parser.add_argument('-f','--filename', type=str, help='filename for logfile')
     parser.add_argument('-d','--directory', type=str, help='directory')
     parser.add_argument('-b','--breakSize', type=str, help='size when to start emergency saving in MB')
-
 
     args = parser.parse_args()
     a = Forcelogger(filename=args.filename,directory=args.directory,breaksize=args.breakSize)
