@@ -1,0 +1,9 @@
+# publish all joint states
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 125
+
+# forward ptiasc commands to all joints
+pitasc_controller:
+    type: pitasc_controller/PitascController
+    timeout: 0.05

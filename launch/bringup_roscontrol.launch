@@ -1,0 +1,53 @@
+<launch>
+    <!--arg name="ip" default="10.17.88.159"/-->
+    <arg name="ip" default="192.168.0.1"/>
+    <arg name="takearm" default="true"/>
+
+    <rosparam
+        command="load"
+        file="$(find denso)/launch/controllers.yaml">
+    </rosparam>
+
+    <node
+        name="denso_ros_control_node"
+        pkg="denso_drivers"
+        type="ros_control_node"
+        output="screen"
+        required="true">
+
+        <param name="ip" value="$(arg ip)"/>
+
+        <rosparam>
+            joint_names:
+              - joint_0
+              - joint_1
+              - joint_2
+              - joint_3
+              - joint_4
+              - joint_5
+        </rosparam>
+    </node>
+
+<group if="$(arg takearm)">
+  <!-- stuff that will only be evaluated if foo is true -->
+    <node
+        name="controller_spawner"
+        pkg="controller_manager"
+        type="spawner"
+        args="joint_state_controller pitasc_controller --shutdown-timeout 1"
+        output="screen">
+    </node>
+</group>
+
+<group unless="$(arg takearm)">
+  <!-- stuff that will only be evaluated if foo is fakse -->
+    <node
+        name="controller_spawner"
+        pkg="controller_manager"
+        type="spawner"
+        args="joint_state_controller --shutdown-timeout 1"
+        output="screen">
+    </node>
+</group>
+
+</launch>

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+
+<launch>
+    <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find pitek_2017)/etc/rviz_denso_presentation.rviz"/> -->
+    <!-- <node pkg="rqt_gui" type="rqt_gui" name="frame_editor" args="--standalone frame_editor --args --load 'pitek_2017 etc/denso.yaml'" output="screen"/> -->
+</launch>

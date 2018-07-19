@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="h-vac" >
+
+  <xacro:macro name="h-vac" params="parent prefix *origin">
+
+    <joint name="${prefix}mount1" type="fixed" >
+      <xacro:insert_block name="origin" />
+      <parent link="${parent}" />
+      <child link="${prefix}side1" />
+    </joint>
+
+    <link name="${prefix}side1">
+     <visual>
+       <origin xyz="0 0 0.015" rpy="0 0 0"/>
+       <geometry>
+          <box size="0.695 0.75 0.03"/>
+       </geometry>
+       <material name="Gray">
+        <color rgba="0.5 0.5 0.5 1"/>
+       </material>
+     </visual>
+    </link>
+
+    <joint name="${prefix}side2" type="fixed">
+      <origin xyz="0.0525 0 0.03" rpy="0 0 0"/>
+      <parent link="${prefix}side1"/>
+      <child link="${prefix}side2"/>
+    </joint>
+
+    <link name="${prefix}side2">
+     <visual>
+       <origin xyz="0 0 0.275" rpy="0 0 0"/>
+       <geometry>
+          <box size="0.4 0.75 0.55"/>
+       </geometry>
+       <material name="Whiter">
+        <color rgba="0.9 0.9 0.9 1"/>
+       </material>
+     </visual>
+    </link>
+
+  </xacro:macro>
+</robot>

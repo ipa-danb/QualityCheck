@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<launch>
+    <!-- marker -->
+    <node name="interactive_transform_publisher" pkg="interactive_transform_publisher" type="interactive_transform_publisher_node">
+        <param name="interactive_pose_topic" value="itasc_set_pose"/>
+        <param name="interactive_pose_parent" value="base_link"/>
+        <param name="interactive_pose_child" value="marker"/>
+        <param name="initial_pose/position/x" value="0"/>
+        <param name="initial_pose/position/y" value="0.4"/>
+        <param name="initial_pose/position/z" value="0.4"/>
+    </node>
+    
+    <node name="target1_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 marker target1 100"/>
+
+    <node name="target2_publisher" pkg="tf" type="static_transform_publisher" args=" 0.12234032154083252 0.32288625836372375 0.42447224259376526 -0.057138774544000626 0.0 0.0 0.9983662366867065 base_link target2 100"/>
+    
+    <node name="target3_publisher" pkg="tf" type="static_transform_publisher" args="0.1673933994024992 0.5303245782852173 0.42447224259376526 0 0 0 1 base_link target3 100"/>
+    
+    <node name="start_pos_publisher" pkg="tf" type="static_transform_publisher" args="0.004430416505783796 -0.46073538064956665 0.026505187153816223 -0.7107641696929932 0.7033267617225647 0.008568543940782547 0.008503307588398457 base_link start_position 100"/>
+    
+    <node name="tool_publisher" pkg="tf" type="static_transform_publisher" args="0.1 0 0 0 0 0 1.0 ee_link tool 100"/>
+
+    <!-- robot description -->
+    <include file="$(find denso_vs08a4_av6_support)/launch/upload.launch"/>
+    
+    <!-- robot state publisher -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+
+    <!-- rviz -->
+    <node pkg="rviz" type="rviz" name="rviz"
+         args="-d $(find pitasc_common)/launch/pitasc_3d.rviz"/>
+
+    <!-- simulator -->
+    <node name="simulator" pkg="pitasc_extensions" type="micro_simulator.py">
+        <param name="tool_frame" value="ee_link"/>
+        <rosparam param="initial_state">
+            joint_0: 0.0
+            joint_1: 1.0
+            joint_2: 1.0
+            joint_3: 0.0
+            joint_4: 1.0
+            joint_5: 0.0
+        </rosparam>
+    </node>
+
+</launch>

@@ -1,0 +1,30 @@
+<launch>
+    <param name="profile_level" value="30" />
+
+    <arg name="ip" default="192.168.0.1" />
+    <arg name="rmi_takearm" default="false" />
+
+    <include
+        file="$(find denso)/launch/bringup_cell.launch"/>
+
+    <include
+        file="$(find denso)/launch/bringup_dynpick.launch"/>
+
+    <include
+        file="$(find denso)/launch/bringup_rmi.launch">
+        <arg name="ip" value="$(arg ip)" />
+        <arg name="takearm" value="true" if="$(arg rmi_takearm)"/>
+    </include>
+
+    <include
+        file="$(find denso)/launch/bringup_video.launch"/>
+
+    <include
+        file="$(find denso)/launch/bringup_roscontrol.launch">
+        <arg name="ip" value="$(arg ip)" />
+        <arg name="takearm" value="true" unless="$(arg rmi_takearm)"/>
+    </include>
+
+    <node pkg="rqt_gui" type="rqt_gui" name="frame_editor" args="--standalone frame_editor --args --load 'denso etc/denso.yaml'" output="screen"/>
+
+</launch>

@@ -1,0 +1,24 @@
+<launch>
+    <arg name="ip" default="10.17.88.159" />
+    <arg name="rmi_takearm" default="false" />
+
+    <include
+        file="$(find denso)/launch/bringup_cell.launch"/>
+
+    <include
+        file="$(find denso)/launch/bringup_roscontrol.launch">
+        <arg name="ip" value="$(arg ip)" />
+        <arg name="takearm" value="true" unless="$(arg rmi_takearm)"/>
+    </include>
+
+    <include
+        file="$(find denso)/launch/bringup_rmi.launch">
+        <arg name="ip" value="$(arg ip)" />
+        <arg name="takearm" value="true" if="$(arg rmi_takearm)"/>
+    </include>
+
+    <include
+        file="$(find denso)/launch/bringup_guis.launch"/>
+
+
+</launch>

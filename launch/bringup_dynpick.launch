@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="rate" default="125" />
+    <arg name="sensor_frame_id" default="force_frame" />
+    <arg name="ip" default="192.168.0.4" />
+    <arg name="port" default="5001" />
+
+    <node
+        name="VirtualPortRedirection" pkg="denso" type="socat_script.sh"
+        args="$(arg ip) $(arg port) /tmp/YPort"
+        output="screen"/>
+    
+    <include file="$(find dynpick_driver)/launch/driver.launch">
+        <arg name="device" value="/tmp/YPort" />
+        <arg name="topic" value="wrench" />
+        <arg name="rate" value="$(arg rate)" />
+        <arg name="sensor_frame_id" value="$(arg sensor_frame_id)" />
+    </include>
+</launch>

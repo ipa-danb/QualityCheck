@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="h-vac_tool" >
+
+  <xacro:macro name="h-vac_tool" params="parent prefix *origin">
+
+    <joint name="${prefix}flange_mount" type="fixed" >
+      <xacro:insert_block name="origin" />
+      <parent link="${parent}" />
+      <child link="${prefix}tool_mount" />
+    </joint>
+
+    <link name="${prefix}tool_mount">
+      <visual>
+        <origin xyz="0 0 ${0.2/2}" rpy="0 0 0"/>
+        <geometry>
+           <box size="0.04 0.06 0.2"/>
+        </geometry>
+        <material name="Gray">
+         <color rgba="0.5 0.5 0.5 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="${prefix}offset" type="fixed">
+      <origin xyz="0 0 0.27" rpy="0 0 0"/>
+      <parent link="${prefix}tool_mount"/>
+      <child link="${prefix}tool_offset"/>
+    </joint>
+
+    <link name="${prefix}tool_offset">
+      <visual>
+        <origin xyz="0.04 0 -${0.07/2}" rpy="0 0 0"/>
+        <geometry>
+           <box size="0.12 0.25 0.07"/>
+        </geometry>
+        <material name="Gray">
+         <color rgba="0.5 0.5 0.5 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="${prefix}contact1" type="fixed">
+      <origin xyz="-0.02 0 0" rpy="0 0 0"/>
+      <parent link="${prefix}tool_offset"/>
+      <child link="${prefix}contact1"/>
+    </joint>
+
+    <link name="${prefix}contact1">
+    </link>
+
+    <joint name="${prefix}contact2" type="fixed">
+      <origin xyz="0.1 0 0" rpy="0 0 0"/>
+      <parent link="${prefix}tool_offset"/>
+      <child link="${prefix}contact2"/>
+    </joint>
+
+    <link name="${prefix}contact2">
+    </link>
+
+  </xacro:macro>
+</robot>

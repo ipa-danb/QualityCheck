@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<launch>
+    <!-- <arg name="ip" default="10.17.88.106"/> -->
+    <arg name="ip" default="192.168.0.1"/>
+    <arg name="takearm" default="false"/>
+
+    <node pkg="denso_drivers" type="rmi_node" name="rmi_node" output="screen">
+        <param name="ip" value="$(arg ip)"/>
+        <param name="takearm" value="$(arg takearm)"/>
+        <param name="tool_name" value="contact2"/>
+    </node>
+</launch>
