@@ -23,6 +23,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.cfg
 MANIFEST
 
 # PyInstaller
@@ -102,4 +103,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Folders
+[Dd]ata
+[Cc]fgs
 
