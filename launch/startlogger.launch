@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+    <include file="$(find denso)/launch/bringup_dynpick.launch"/>
+    <node pkg="denso" name="forcelogger" type="forcelogger.py" args="" output="screen"/>
+</launch>

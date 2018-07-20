@@ -19,6 +19,7 @@ import pandas as pd
 import pyarrow as pa
 import numpy as np
 import pyarrow.parquet as pq
+import argparse
 
 class Forcelogger:
     def __init__(self,**kwargs):
@@ -266,12 +267,12 @@ class Forcelogger:
             rospy.logwarn("Emergency save data")
 
 if __name__ == '__main__':
-    import argparse
+
     parser = argparse.ArgumentParser(description='Logs forces of robots')
     parser.add_argument('-f','--filename', type=str, help='filename for logfile')
     parser.add_argument('-d','--directory', type=str, help='directory')
     parser.add_argument('-b','--breakSize', type=str, help='size when to start emergency saving in MB')
 
-    args = parser.parse_args()
+    args = parser.parse_args(rospy.myargv()[1:])
     a = Forcelogger(filename=args.filename,directory=args.directory,breaksize=args.breakSize)
     a.listener()
