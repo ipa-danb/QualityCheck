@@ -50,6 +50,7 @@ find_package(catkin REQUIRED COMPONENTS message_generation std_msgs)
 add_service_files(
   FILES
   startForceLog.srv
+  analyzeForceData.srv
 )
 
 ## Generate actions in the 'action' folder

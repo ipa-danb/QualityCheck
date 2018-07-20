@@ -1,0 +1,7 @@
+string fname
+string selector
+int64 nr
+---
+bool success
+bool checkTrigger
+float64 qcvalue
