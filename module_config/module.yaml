@@ -1,6 +1,6 @@
 package: denso
-components:
-  - name: "Quality Check Module"
-    description: "---"
-    type: qccheckmodule
-    roslaunch: startlogger.launch
+name: "Quality Check Module"
+description: "---"
+type: qccheckmodule
+roslaunch: startlogger.launch
+status_topic: /forcelogger/status
