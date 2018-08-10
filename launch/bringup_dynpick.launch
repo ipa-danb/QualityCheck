@@ -6,10 +6,10 @@
     <arg name="port" default="5001" />
 
     <node
-        name="VirtualPortRedirection" pkg="denso" type="socat_script.sh"
+        name="VirtualPortRedirection" pkg="quality_check" type="socat_script.sh"
         args="$(arg ip) $(arg port) /tmp/YPort"
         output="screen"/>
-    
+
     <include file="$(find dynpick_driver)/launch/driver.launch">
         <arg name="device" value="/tmp/YPort" />
         <arg name="topic" value="wrench" />

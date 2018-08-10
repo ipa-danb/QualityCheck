@@ -1,4 +1,4 @@
-package: denso
+package: quality_check
 name: "Quality Check Module"
 description: "---"
 type: qccheckmodule

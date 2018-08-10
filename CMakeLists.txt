@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(denso)
+project(quality_check)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -97,7 +97,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES denso
+#  LIBRARIES quality_check
    CATKIN_DEPENDS std_msgs message_runtime
 #  DEPENDS system_lib
 )
@@ -111,24 +111,24 @@ catkin_package(
 # include_directories(include)
 
 ## Declare a C++ library
-# add_library(denso
-#   src/${PROJECT_NAME}/denso.cpp
+# add_library(quality_check
+#   src/${PROJECT_NAME}/quality_check.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(denso ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(quality_check ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(denso_node src/denso_node.cpp)
+# add_executable(quality_check_node src/quality_check_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(denso_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(quality_check_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(denso_node
+# target_link_libraries(quality_check_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -153,7 +153,7 @@ catkin_package(
 #                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS denso denso_node
+# install(TARGETS quality_check quality_check_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -179,7 +179,7 @@ catkin_package(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_denso.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_quality_check.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
