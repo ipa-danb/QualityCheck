@@ -15,9 +15,7 @@ import sys
 import threading
 import time
 import pandas as pd
-import pyarrow as pa
 import numpy as np
-import pyarrow.parquet as pq
 import argparse
 
 class Forcelogger:
@@ -69,9 +67,18 @@ class Forcelogger:
         self.list_training_data = [[],[]]
         self.current_states = []
         self.start_times = []
-        self.last_measurement = {'xp': 0,'yp': 0,'zp': 0,'ap': 0,'bp': 0,'gp': 0,'timeP':0}
+        self.last_measurement = {'x_position': 0,
+                                 'y_position': 0,
+                                 'z_position': 0,
+                                 'alpha_position': 0,
+                                 'beta_position': 0,
+                                 'gamma_position': 0,
+                                 'time_position':0}
         self.start_time = 0
         self.counter= 0
+
+        self.seq = 0
+        self.cc = 0
 
         self.errorFlag = False
 
@@ -116,6 +123,7 @@ class Forcelogger:
         try:
             self.unsubscribe()
             self.clearLog()
+            return True, 'Dicarded Recording'
         except Exception as ex:
             return False, str(ex)
 
@@ -149,8 +157,8 @@ class Forcelogger:
                 preind = [tuple(xi+['-']*(length-len(xi))) for xi in self.list_training_data[1]]
                 mltind = pd.MultiIndex.from_tuples(preind)
                 df2 = pd.DataFrame(self.list_training_data[0],index=mltind)
-                table =  pa.Table.from_pandas(df2)
-                pq.write_table(table, os.path.join(dir,file_name), compression='BROTLI')
+                df2.to_parquet(os.path.join(dir,file_name), compression='brotli')
+
                 rospy.loginfo("Saved file as %s", file_name)
         except Exception as ex:
             rospy.logerr(ex)
@@ -161,6 +169,13 @@ class Forcelogger:
 
     def clearLog(self):
         self.list_training_data = [[],[]]
+        self.last_measurement = {'x_position': 0,
+                                 'y_position': 0,
+                                 'z_position': 0,
+                                 'alpha_position': 0,
+                                 'beta_position': 0,
+                                 'gamma_position': 0,
+                                 'time_position':0}
         rospy.loginfo("Cleared datalog")
 
     def memorycheck(self):
@@ -223,55 +238,58 @@ class Forcelogger:
         float32 beta
         float32 gamma
         """
-        self.counter += 1
         with self.lock:
-            tme2 =  rospy.Time.now().to_sec()
-            self.last_measurement = {'xp': data.x,
-                                     'yp': data.y,
-                                     'zp': data.z,
-                                     'ap': data.alpha,
-                                     'bp': data.beta,
-                                     'gp': data.gamma,
-                                     'timeP':tme2}
-            if self.counter % 3000 == 0:
+            tme_pos =  rospy.Time.now()
+            self.last_measurement = {'x_position': data.x,
+                                     'y_position': data.y,
+                                     'z_position': data.z,
+                                     'alpha_position': data.alpha,
+                                     'beta_position': data.beta,
+                                     'gamma_position': data.gamma,
+                                     'time_position':tme_pos.to_sec()}
+
+
+    # This function is called whenever a wrench data set arrives
+    def callback_wrench(self,data):
+
+        with self.lock:
+
+            self.counter += 1
+            tme_force = rospy.Time(secs=data.header.stamp.secs,nsecs=data.header.stamp.nsecs)
+            for state in self.current_states:
+                idx = self.current_states.index(state)
+                self.start_time = self.start_times[idx]
+
+
+            meas = {'x_force': data.wrench.force.x,
+                    'y_force': data.wrench.force.y,
+                    'z_force': data.wrench.force.z,
+                    'x_torque': data.wrench.torque.x,
+                    'y_torque': data.wrench.torque.y,
+                    'z_torque': data.wrench.torque.z,
+                    'time_force': tme_force.to_sec(),
+                    'time_start': self.start_time.to_sec()}
+
+            meas.update(self.last_measurement)
+
+            try:
+                self.list_training_data[0].append(meas)
+                self.list_training_data[1].append(list(self.current_states))
+            except:
+                print("Topic doesnt exist")
+
+            if self.counter % 10000 == 0:
                 self.counter = 0
                 if sys.getsizeof(self.list_training_data)/(1024.0*1024.0) > self.breaksize:
                     rospy.logwarn("Size of Log over {0} MB, save data, stopping Logger".format(self.breaksize))
                     self.unsubscribe()
                     self.saveLog()
                     self.clearLog()
-                    #print("Size of Log: {0} MB".format(sys.getsizeof(self.list_training_data)/(1024.0*1024.0)))
-
-    # This function is called whenever a wrench data set arrives
-    def callback_wrench(self,data):
-        tme = rospy.Time.now().to_sec()
-        with self.lock:
-            for state in self.current_states:
-                idx = self.current_states.index(state)
-                start_time = self.start_times[idx]
-                self.start_time = start_time
-
-                meas = {'xf': data.wrench.force.x,
-                        'yf': data.wrench.force.y,
-                        'zf': data.wrench.force.z,
-                        'xt': data.wrench.torque.x,
-                        'yt': data.wrench.torque.y,
-                        'zt': data.wrench.torque.z,
-                        'timeF': tme - start_time}
-
-                meas.update(self.last_measurement)
-
-                meas['timeP'] = meas['timeP'] - start_time
-                try:
-                    self.list_training_data[0].append(meas)
-                    self.list_training_data[1].append(list(self.current_states))
-                except:
-                    print("Topic doesnt exist")
 
     # This function is called whenever a information about the active state arrives
     def callback_log(self,data):
-        tme = rospy.Time.now().to_sec()
         with self.lock:
+            tme_log = rospy.Time.now()
             # Checks if a new state is entered
             if data.data.startswith("Entering state"):
                 statename = data.data[15:] # Cuts the first 16 characters of the message
@@ -280,14 +298,14 @@ class Forcelogger:
                 if not statename in self.current_states:
 
                     self.current_states.append(statename)
-                    self.start_times.append(tme) # dnb message does not have a timestamp
+                    self.start_times.append(tme_log) # dnb message does not have a timestamp
 
                 else:
                     rospy.loginfo("inconsistent log info, clearing log and starting new")
                     del self.start_times[:]
                     del self.current_states[:]
                     self.current_states.append(statename)
-                    self.start_times.append(tme)
+                    self.start_times.append(tme_log)
 
                 #print len(self.current_states), self.current_states
 
