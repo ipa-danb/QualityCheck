@@ -6,7 +6,7 @@ from geometry_msgs.msg import WrenchStamped
 from robot_movement_interface.msg import EulerFrame
 from std_msgs.msg import String
 from std_srvs.srv import Empty, Trigger
-from denso.srv import startForceLog
+from quality_check.srv import startForceLog
 from dnb_msgs.msg import ComponentStatus
 
 # Regular imports
@@ -76,11 +76,6 @@ class Forcelogger:
                                  'time_position':0}
         self.start_time = 0
         self.counter= 0
-
-        self.seq = 0
-        self.cc = 0
-
-        self.errorFlag = False
 
         # Initialize Lock
         self.lock = threading.Lock()
@@ -179,13 +174,14 @@ class Forcelogger:
         rospy.loginfo("Cleared datalog")
 
     def memorycheck(self):
-        # check for free memory in data directory
+        # check for free memory in data directory: OS specific! (unix only)
         st = os.statvfs(self.directory)
         mb = st.f_bavail * st.f_frsize / 1024 / 1024
         rospy.loginfo("so minspace {0} and mb {1}".format(self.minspace,mb) )
         return self.minspace < mb
 
     def publishstatus(self,status,message):
+        #TODO: this is probably redundant
         self.cm_status = ComponentStatus()
         if status == 0:
             self.cm_status.status_id = ComponentStatus().INITIALIZED
@@ -352,11 +348,11 @@ class Forcelogger:
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Logs forces of robots')
-    parser.add_argument('-f','--filename', type=str, help='filename for logfile')
-    parser.add_argument('-d','--directory', type=str, help='directory')
-    parser.add_argument('-b','--breakSize', type=int, help='size when to start emergency saving in MB')
-    parser.add_argument('-m','--minspace', type=int, help='stop saving data if not at least this much space is left in MB')
+    parser.add_argument('-f', '--filename', type=str, help='filename for logfile')
+    parser.add_argument('-d', '--directory', type=str, help='directory')
+    parser.add_argument('-b', '--breakSize', type=int, help='size when to start emergency saving in MB')
+    parser.add_argument('-m', '--minspace', type=int, help='stop saving data if not at least this much space is left in MB')
 
-    args = parser.parse_args(rospy.myargv()[1:])
+    args = parser.parse_args(rospy.myargv()[1:]) # from ROS there could be arguments which interfere with argparse
     a = Forcelogger(filename=args.filename,directory=args.directory,breaksize=args.breakSize)
     a.listener()

@@ -4,7 +4,7 @@ from geometry_msgs.msg import WrenchStamped
 from robot_movement_interface.msg import EulerFrame
 from std_msgs.msg import String
 from std_srvs.srv import Empty, Trigger
-from denso.srv import startForceLog, analyzeForceData, analyzeForceDataResponse
+from quality_check.srv import startForceLog, analyzeForceData, analyzeForceDataResponse
 
 
 import os
