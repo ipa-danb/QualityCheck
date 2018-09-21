@@ -104,7 +104,7 @@ class Forcelogger:
             rospy.loginfo("Stopping Forcelog")
             rospy.loginfo("---")
             if self.memorycheck():
-                self.publishstatus(1,'Force log is paused')
+                self.publishstatus(2,'Force log is paused')
             else:
                 self.publishstatus(4,'Not enough memory left!')
 
