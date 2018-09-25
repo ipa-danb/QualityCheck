@@ -93,7 +93,7 @@ class Forcelogger:
             self.subscribe()
             return True
         else:
-            self.publishstatus(4,'Not enough memory left!')
+            self.publishstatus(2,'Not enough memory left!')
             return False
 
     def stop_forcelog(self,req):
@@ -106,7 +106,7 @@ class Forcelogger:
             if self.memorycheck():
                 self.publishstatus(2,'Force log is paused')
             else:
-                self.publishstatus(4,'Not enough memory left!')
+                self.publishstatus(2,'Not enough memory left!')
 
             return True, ''
         except Exception as ex:
@@ -333,13 +333,13 @@ class Forcelogger:
         if self.memorycheck():
             self.publishstatus(0,'ready for recording')
         else:
-            self.publishstatus(4,'Not enough memory left!')
+            self.publishstatus(2,'Not enough memory left!')
 
         # spin() simply keeps python from exiting until this node is stopped
         try:
             rospy.spin()
         finally:
-            self.publishstatus(4,'Emergency Stop')
+            self.publishstatus(2,'Emergency Stop')
             print("Emergency Saving")
             self.data_file_name += "_emr"
             self.saveLog()
