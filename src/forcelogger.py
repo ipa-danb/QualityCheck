@@ -75,7 +75,8 @@ class Forcelogger:
                                  'gamma_position': 0,
                                  'time_position':0}
         self.start_time = 0
-        self.counter= 0
+        self.counter = 0
+        self.runcounter = 0
 
         # Initialize Lock
         self.lock = threading.Lock()
@@ -85,32 +86,45 @@ class Forcelogger:
     ###################################
 
     def start_forcelog(self,req):
-        rospy.loginfo("Start Forcelog with filename: " + req.name)
-        self.data_file_name = req.name
-        if self.memorycheck():
-            self.clearLog()
-            self.publishstatus(2,'Force log is running')
-            self.subscribe()
-            return True
-        else:
-            self.publishstatus(2,'Not enough memory left!')
+        self.runcounter += 1
+        if self.runcounter > 1:
+            rospy.loginfo("Forcelog already running")
             return False
-
-    def stop_forcelog(self,req):
-        try:
-            self.unsubscribe()
-            self.saveLog()
-            self.clearLog()
-            rospy.loginfo("Stopping Forcelog")
-            rospy.loginfo("---")
+        else:
+            rospy.loginfo("Start Forcelog with filename: " + req.name)
+            self.data_file_name = req.name
             if self.memorycheck():
-                self.publishstatus(2,'Force log is paused')
+                self.clearLog()
+                self.publishstatus(2,'Force log is running')
+                self.subscribe()
+                return True
             else:
                 self.publishstatus(2,'Not enough memory left!')
+                return False
 
-            return True, ''
-        except Exception as ex:
-            return False, str(ex)
+    def save_and_clear(self):
+        self.saveLog()
+        self.clearLog()
+
+    def stop_forcelog(self,req):
+        if runcounter > 1:
+            self.runcounter -= 1
+            return False
+        else:
+            try:
+                self.unsubscribe()
+                threading.Thread(target = save_and_clear, args = (self,)).start()
+                rospy.loginfo("Stopping Forcelog")
+                rospy.loginfo("---")
+                if self.memorycheck():
+                    self.publishstatus(2,'Force log is paused')
+                else:
+                    self.publishstatus(2,'Not enough memory left!')
+
+
+                return True, ''
+            except Exception as ex:
+                return False, str(ex)
 
     def handle_clear(self,req):
         """Clears datalog
@@ -141,20 +155,19 @@ class Forcelogger:
             return False
         try:
             # Parquet with Brotli compression
-            with self.lock:
-                try:
-                    os.makedirs(dir)
-                except OSError:
-                    if not os.path.isdir(dir):
-                        raise
+            try:
+                os.makedirs(dir)
+            except OSError:
+                if not os.path.isdir(dir):
+                    raise
 
-                length = len(sorted(self.list_training_data[1],key=len, reverse=True)[0])
-                preind = [tuple(xi+['-']*(length-len(xi))) for xi in self.list_training_data[1]]
-                mltind = pd.MultiIndex.from_tuples(preind)
-                df2 = pd.DataFrame(self.list_training_data[0],index=mltind)
-                df2.to_parquet(os.path.join(dir,file_name), compression='brotli')
+            length = len(sorted(self.list_training_data[1],key=len, reverse=True)[0])
+            preind = [tuple(xi+['-']*(length-len(xi))) for xi in self.list_training_data[1]]
+            mltind = pd.MultiIndex.from_tuples(preind)
+            df2 = pd.DataFrame(self.list_training_data[0],index=mltind)
+            df2.to_parquet(os.path.join(dir,file_name), compression='brotli')
 
-                rospy.loginfo("Saved file as %s", file_name)
+            rospy.loginfo("Saved file as %s", file_name)
         except Exception as ex:
             rospy.logerr(ex)
 
