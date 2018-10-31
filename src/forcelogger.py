@@ -86,12 +86,13 @@ class Forcelogger:
     ###################################
 
     def start_forcelog(self,req):
-        self.runcounter += 1
-        if self.runcounter > 1:
-            rospy.loginfo("Forcelog already running")
+        if self.runcounter > 0:
+	    self.runcounter += 1
+            rospy.loginfo("{0} Forcelogs already running".format(self.runcounter))
             return False
         else:
-            rospy.loginfo("Start Forcelog with filename: " + req.name)
+            self.runcounter += 1
+            rospy.loginfo("Start {0} Forcelog with filename: {1}".format(self.runcounter,req.name))
             self.data_file_name = req.name
             if self.memorycheck():
                 self.clearLog()
@@ -107,13 +108,16 @@ class Forcelogger:
         self.clearLog()
 
     def stop_forcelog(self,req):
-        if runcounter > 1:
+        rospy.loginfo("Currently {0} Forcelogs were called".format(self.runcounter))
+        if self.runcounter > 1:
             self.runcounter -= 1
-            return False
+            return False,"Another instance is already running"
         else:
+            self.runcounter -= 1
             try:
                 self.unsubscribe()
-                threading.Thread(target = save_and_clear, args = (self,)).start()
+                #threading.Thread(target = save_and_clear, args = (self,)).start()
+                self.save_and_clear()
                 rospy.loginfo("Stopping Forcelog")
                 rospy.loginfo("---")
                 if self.memorycheck():
